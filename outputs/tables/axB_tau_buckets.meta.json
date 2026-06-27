@@ -1,0 +1,1 @@
+{"name": "axB_tau_buckets", "rows": 10, "columns": ["tau_bucket", "regime", "mean_spread", "median_spread", "mean_rel_spread", "median_rel_spread", "mean_OBI", "median_OBI", "mean_depth_bid", "median_depth_bid", "mean_depth_ask", "median_depth_ask", "n_snaps"]}

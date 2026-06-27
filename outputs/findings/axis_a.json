@@ -1,0 +1,103 @@
+[
+  {
+    "id": "axA_skew_persistent",
+    "axis": "A",
+    "title": "IV skew in near-term calls (free periods)",
+    "claim": "Near-term call IV slope vs moneyness = 0.8500 (p=0.000)",
+    "scope": {
+      "moneyness": "near-atm",
+      "maturity_days": "<=30",
+      "regime": "free"
+    },
+    "metrics": {
+      "skew_slope": 0.8499551552735386,
+      "n_obs": 2021,
+      "p_value": 2.117862228715561e-27
+    },
+    "stat_test": {
+      "name": "HAC OLS",
+      "statistic": 10.844501941512895,
+      "p_value": 2.117862228715561e-27,
+      "ci": [
+        0.6963398484761587,
+        1.0035704620709185
+      ]
+    },
+    "figure_refs": [
+      "axA_iv_smile"
+    ],
+    "table_refs": [
+      "axA_iv_summary"
+    ],
+    "robustness": "r-sensitivity, subperiods",
+    "limitations": "selection bias from liquidity gate",
+    "confidence": "medium"
+  },
+  {
+    "id": "axA_bs_error",
+    "axis": "A",
+    "title": "BS pricing error magnitude and direction",
+    "claim": "Median BS pricing error (EWMA vol) = 486.05; mean = 844.26 (p=0.000, n=18012)",
+    "scope": {
+      "regime": "daily_eligible",
+      "maturity_days": "all"
+    },
+    "metrics": {
+      "median_bs_error": 486.04805025376044,
+      "mean_bs_error": 844.2631340982061,
+      "n_obs": 18012
+    },
+    "stat_test": {
+      "name": "HAC t-test",
+      "statistic": 28.956673184935063,
+      "p_value": 2.3126984836844242e-184,
+      "ci": [
+        787.1182637003085,
+        901.408004496104
+      ],
+      "n": 18012
+    },
+    "figure_refs": [
+      "axA_pricing_error_by_bucket"
+    ],
+    "table_refs": [
+      "axA_pricing_error"
+    ],
+    "robustness": "r-sensitivity, bucket stratification",
+    "limitations": "uses EWMA vol which may itself be biased for a leveraged ETF",
+    "confidence": "medium"
+  },
+  {
+    "id": "axA_parity",
+    "axis": "A",
+    "title": "Put-call parity deviation",
+    "claim": "Median parity basis = 578.00; mean = 810.97 (p=0.000)",
+    "scope": {
+      "regime": "daily_eligible",
+      "moneyness": "all"
+    },
+    "metrics": {
+      "median_parity_basis": 578.0,
+      "n_pairs": 6972
+    },
+    "stat_test": {
+      "name": "HAC t-test",
+      "statistic": 16.299587921753155,
+      "p_value": 9.935974849427708e-60,
+      "ci": [
+        713.4502763916644,
+        908.4814505159666
+      ],
+      "n": 6972
+    },
+    "figure_refs": [
+      "axA_parity_by_bucket"
+    ],
+    "table_refs": [
+      "axA_parity_summary"
+    ],
+    "robustness": "r-sensitivity",
+    "limitations": "EOD pair availability ~31%; stale quotes possible",
+    "confidence": "medium"
+  }
+]

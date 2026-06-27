@@ -1,0 +1,12 @@
+{
+  "name": "axA_parity_summary",
+  "rows": 15,
+  "columns": [
+    "moneyness_bucket",
+    "maturity_bucket",
+    "n",
+    "mean_basis",
+    "median_basis",
+    "std_basis"
+  ]
+}

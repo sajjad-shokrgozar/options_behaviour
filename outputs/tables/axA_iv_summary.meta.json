@@ -1,0 +1,13 @@
+{
+  "name": "axA_iv_summary",
+  "rows": 30,
+  "columns": [
+    "moneyness_bucket",
+    "maturity_bucket",
+    "option_type",
+    "n",
+    "mean_iv",
+    "median_iv",
+    "std_iv"
+  ]
+}

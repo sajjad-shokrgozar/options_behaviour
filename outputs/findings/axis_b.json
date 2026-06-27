@@ -1,0 +1,72 @@
+[
+  {
+    "id": "axB_tau_coverage",
+    "axis": "B",
+    "title": "τ-bucket coverage in queue regime",
+    "claim": "Total queue option snapshots: 8681; buy_queue: 6732; sell_queue: 1949",
+    "scope": {
+      "regime": "queue"
+    },
+    "metrics": {
+      "n_queue_snaps": 8681,
+      "n_buy_queue": 6732,
+      "n_sell_queue": 1949
+    },
+    "stat_test": {},
+    "figure_refs": [],
+    "table_refs": [
+      "axB_tau_buckets"
+    ],
+    "robustness": "τ-bucket edges from config",
+    "limitations": "N depends on detected episodes",
+    "confidence": "high"
+  },
+  {
+    "id": "axB_nextday_open",
+    "axis": "B",
+    "title": "Next-day open predictability from shadow gap",
+    "claim": "Shadow gap slope=6.01e-06, p=0.0000, N=6627",
+    "scope": {
+      "regime": "queue"
+    },
+    "metrics": {
+      "shadow_gap_slope": 6.014583051051906e-06,
+      "n_obs": 6627,
+      "p_value": 5.711776735854973e-233
+    },
+    "stat_test": {
+      "name": "OLS"
+    },
+    "figure_refs": [
+      "axB_nextday_open"
+    ],
+    "table_refs": [
+      "axB_nextday_pred"
+    ],
+    "robustness": "low power expected",
+    "limitations": "N=6627; EOD only",
+    "confidence": "medium"
+  },
+  {
+    "id": "axB_shadow_availability",
+    "axis": "B",
+    "title": "Shadow price availability during queue episodes",
+    "claim": "Shadow price computable for 6708 EOD pairs during queue days.",
+    "scope": {
+      "regime": "queue"
+    },
+    "metrics": {
+      "n_shadow_obs": 6708
+    },
+    "stat_test": {},
+    "figure_refs": [
+      "axB_shadow_vs_tau"
+    ],
+    "table_refs": [
+      "axB_shadow_availability"
+    ],
+    "robustness": "limited by pair availability",
+    "limitations": "EOD only",
+    "confidence": "high"
+  }
+]

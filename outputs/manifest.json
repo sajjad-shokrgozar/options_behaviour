@@ -1,0 +1,80 @@
+{
+  "pipeline_start": "2026-06-27T13:10:04.860514",
+  "specs": {
+    "n_contracts": 450,
+    "n_call": 225,
+    "n_put": 225,
+    "n_valid_expiry": 450
+  },
+  "pipeline_status": "FAILED",
+  "steps_run": [
+    "band_queue"
+  ],
+  "pipeline_end": "2026-06-27T10:09:58.242418",
+  "failed_step": "band_queue",
+  "ingest": {
+    "n_instruments": 146,
+    "n_files": 13531,
+    "n_rows": 28033239
+  },
+  "book": {
+    "n_snapshots_total": 0,
+    "n_instruments": 146
+  },
+  "clean": {
+    "n_rows_total": 0,
+    "crossed_rows": 0,
+    "n_instruments_with_tick": 0
+  },
+  "session": {
+    "fallback_open": "09:00:00",
+    "fallback_close": "12:30:00",
+    "preopen_rows": 0,
+    "continuous_rows": 0
+  },
+  "trades": {
+    "status": "stub_no_data"
+  },
+  "sync": {
+    "n_option_instruments": 144,
+    "n_rows": 0,
+    "fresh_rate": 0.0,
+    "staleness_window_s": 120
+  },
+  "liquidity": {
+    "zero_vol_rate": 0.5681,
+    "pair_availability_rate": 0.5044,
+    "intraday_eligible_rate": 0.4972
+  },
+  "band_queue": {
+    "band_pct": 0.09954,
+    "n_episodes": 1827,
+    "regime_counts": {
+      "free": 7395224,
+      "buy_queue": 6740,
+      "sell_queue": 1955
+    },
+    "at_limit_tol_ticks": 1,
+    "min_persist_snapshots": 3,
+    "post_queue_guard_min": 5
+  },
+  "pricing": {
+    "n_eligible": 18368,
+    "iv_flag_counts": {
+      "ok": 16074,
+      "no_arb": 1841,
+      "invalid_input": 356,
+      "numerical": 97
+    },
+    "n_parity_pairs": 6972,
+    "r_source": "external"
+  },
+  "axis_a": {
+    "n_findings": 3
+  },
+  "axis_b": {
+    "n_queue_snaps": 8681,
+    "n_findings": 3,
+    "shadow_availability_n": 6708
+  }
+}

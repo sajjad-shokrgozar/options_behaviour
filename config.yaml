@@ -1,0 +1,46 @@
+paths:
+  underlying_history: underlying_history.csv
+  options_history:    options_history.csv
+  order_book_dir:     best_limits_data
+  trades_dir:         trades
+  out_dir:            outputs
+
+ids:
+  underlying_id: 17914401175772326
+
+session:
+  derive_from_trades: false       # activate when trades_dir is populated
+  fallback_open:  "09:00:00"
+  fallback_close: "12:30:00"
+
+liquidity:
+  staleness_window_s: 120         # max age of an option quote to be "fresh"
+  min_quote_updates_day: 1
+
+band:
+  source: empirical               # empirical | official
+  official_pct: null
+  empirical_quantile: 0.99        # band ~ this quantile of |move/yesterday|
+  at_limit_tol_ticks: 1           # "at the band" if within this many ticks
+
+queue:
+  min_persist_snapshots: 3        # consecutive snapshots to confirm a queue
+  post_queue_guard_min: 5         # minutes excluded after queue releases
+
+buckets:
+  moneyness_edges: [0.0, 0.85, 0.95, 1.05, 1.15, 100.0]
+  maturity_days_edges: [0, 30, 60, 100000]
+
+pricing:
+  daycount: 365
+  r_source: external
+  r_external_series: data/raw/akhza_yield.csv   # date,yield; optional
+  iv_brackets: [1.0e-4, 5.0]
+  vol_for_bs_error: ewma          # realized | ewma
+  ewma_lambda: 0.94
+
+tau_buckets_min: [0, 1, 5, 15, 30, 100000]
+
+run:
+  seed: 42
+  sample_mode: false
