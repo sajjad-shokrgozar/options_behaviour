@@ -1,6 +1,6 @@
 # Results — Black-Scholes Validity & Option Behavior Under Queue Dynamics (Ahrom ETF)
 
-*Generated: 2026-06-27 10:41*
+*Generated: 2026-06-27 13:39*
 
 ---
 

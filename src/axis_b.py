@@ -123,7 +123,6 @@ def run(cfg: dict) -> None:
 
     findings = []
     episodes = pd.read_parquet(ep_path) if ep_path.exists() else pd.DataFrame()
-    eod = pd.read_parquet(eod_path) if eod_path.exists() else pd.DataFrame()
     under_eod = pd.read_csv(under_eod_path, encoding="utf-8")
     under_eod["date"] = under_eod["date"].astype(str)
 
