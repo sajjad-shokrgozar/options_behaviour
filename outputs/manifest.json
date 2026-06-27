@@ -42,17 +42,18 @@
     "staleness_window_s": 120
   },
   "liquidity": {
-    "zero_vol_rate": 0.5681,
+    "zero_vol_rate": 0.5583,
+    "zero_vol_rate_raw": 0.5681,
     "pair_availability_rate": 0.5044,
     "intraday_eligible_rate": 0.4972
   },
   "band_queue": {
-    "band_pct": 0.09954,
-    "n_episodes": 1827,
+    "band_pct": 0.039999,
+    "n_episodes": 1877,
     "regime_counts": {
-      "free": 7395224,
-      "buy_queue": 6740,
-      "sell_queue": 1955
+      "free": 7395032,
+      "buy_queue": 6880,
+      "sell_queue": 2007
     },
     "at_limit_tol_ticks": 1,
     "min_persist_snapshots": 3,
@@ -61,10 +62,10 @@
   "pricing": {
     "n_eligible": 18368,
     "iv_flag_counts": {
-      "ok": 16074,
-      "no_arb": 1841,
+      "ok": 14590,
+      "no_arb": 3321,
       "invalid_input": 356,
-      "numerical": 97
+      "numerical": 101
     },
     "n_parity_pairs": 6972,
     "r_source": "external"
@@ -73,8 +74,8 @@
     "n_findings": 3
   },
   "axis_b": {
-    "n_queue_snaps": 8681,
+    "n_queue_snaps": 8872,
     "n_findings": 3,
-    "shadow_availability_n": 6708
+    "shadow_availability_n": 6750
   }
 }

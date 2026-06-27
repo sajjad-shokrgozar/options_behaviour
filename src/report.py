@@ -108,7 +108,8 @@ def generate_results(cfg: dict) -> str:
 
     lines += [
         f"- Contracts: {specs.get('n_contracts', '?')} ({specs.get('n_call','?')} call, {specs.get('n_put','?')} put)",
-        f"- Zero-volume contract-day rate (EOD): {100*liq.get('zero_vol_rate',0):.1f}%",
+        f"- Zero-volume rate (within active lifetime): {100*liq.get('zero_vol_rate',0):.1f}% "
+        f"(raw incl. pre/post-listing: {100*liq.get('zero_vol_rate_raw', liq.get('zero_vol_rate',0)):.1f}%)",
         f"- Call-put pair availability (EOD traded): {100*liq.get('pair_availability_rate',0):.1f}%",
         f"- Intraday eligible rate: {100*liq.get('intraday_eligible_rate',0):.1f}%",
         f"- Empirical band: {100*bq.get('band_pct',0):.2f}%",
@@ -217,7 +218,8 @@ def generate_data_quality(cfg: dict) -> str:
     ]
     liq = manifest.get("liquidity", {})
     lines += [
-        f"- Zero-volume contract-day rate: {100*liq.get('zero_vol_rate',0):.1f}%",
+        f"- Zero-volume rate (within active lifetime): {100*liq.get('zero_vol_rate',0):.1f}% "
+        f"(raw: {100*liq.get('zero_vol_rate_raw', liq.get('zero_vol_rate',0)):.1f}%)",
         f"- Call-put pair availability: {100*liq.get('pair_availability_rate',0):.1f}%",
         "",
         "## Band & Queue",

@@ -26,10 +26,11 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def moneyness_bucket(s_k: float, edges: list) -> str:
-    labels = ["deep_otm", "otm", "atm", "itm", "deep_itm"]
+def moneyness_bucket(k_over_s: float, edges: list) -> str:
+    """Moneyness bucket for K/S convention: deep_otm when K >> S (call far OTM)."""
+    labels = ["deep_itm", "itm", "atm", "otm", "deep_otm"]
     for i, edge in enumerate(edges[1:]):
-        if s_k < edge:
+        if k_over_s < edge:
             return labels[min(i, len(labels) - 1)]
     return labels[-1]
 
@@ -57,8 +58,13 @@ def run(cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     eod["date"] = eod["date"].astype(str)
     eod["daily_eligible"] = eod["volume"] > 0
 
-    zero_vol_rate = float(1 - eod["daily_eligible"].mean())
-    logger.info("Zero-volume contract-day rate: %.1f%%", zero_vol_rate * 100)
+    # Raw rate across all rows (includes dates before listing / after expiry)
+    zero_vol_rate_raw = float(1 - eod["daily_eligible"].mean())
+    logger.info("Zero-volume rate (all rows incl. pre/post-lifetime): %.1f%%", zero_vol_rate_raw * 100)
+
+    # Active-lifetime zero_vol_rate: only count days within [first_date, expiry_date]
+    first_date_by_iid = eod.groupby("instrument_id")["date"].min()
+    eod["_first_date"] = eod["instrument_id"].map(first_date_by_iid)
 
     # Attach specs
     specs = pd.read_parquet(specs_path)
@@ -73,12 +79,21 @@ def run(cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     eod["T"] = eod["days_to_expiry"] / cfg["pricing"]["daycount"]
     eod["K"] = pd.to_numeric(eod["strike"], errors="coerce")
 
+    # Active-lifetime filter: date between first_date and expiry_date (YYYYMMDD strings)
+    eod["_expiry_str"] = eod["expiry_greg"].dt.strftime("%Y%m%d")
+    eod_active = eod[(eod["date"] >= eod["_first_date"]) & (eod["date"] <= eod["_expiry_str"])]
+    zero_vol_rate = float(1 - eod_active["daily_eligible"].mean())
+    logger.info(
+        "Zero-volume rate within active lifetime: %.1f%% (raw all-rows: %.1f%%)",
+        zero_vol_rate * 100, zero_vol_rate_raw * 100,
+    )
+
     # Underlying close as S (from underlying EOD)
     under_eod = pd.read_csv(root / cfg["paths"]["underlying_history"], encoding="utf-8")
     under_eod["date"] = under_eod["date"].astype(str)
     under_close_map = under_eod.set_index("date")["close"].to_dict()
     eod["S"] = eod["date"].map(under_close_map)
-    eod["moneyness"] = np.where(eod["K"] > 0, eod["S"] / eod["K"], np.nan)
+    eod["moneyness"] = np.where(eod["S"] > 0, eod["K"] / eod["S"], np.nan)
     eod["moneyness_bucket"] = eod["moneyness"].apply(
         lambda x: moneyness_bucket(x, mon_edges) if pd.notna(x) else "unknown"
     )
@@ -159,6 +174,7 @@ def run(cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
         {
             "liquidity": {
                 "zero_vol_rate": round(zero_vol_rate, 4),
+                "zero_vol_rate_raw": round(zero_vol_rate_raw, 4),
                 "pair_availability_rate": round(pair_rate, 4),
                 "intraday_eligible_rate": round(intraday_rate, 4),
             }

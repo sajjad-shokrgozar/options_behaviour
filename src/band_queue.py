@@ -29,31 +29,53 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def detect_band_pct(
+def compute_band_per_date(
     underlying_eod: pd.DataFrame,
+    window: int = 60,
     quantile: float = 0.99,
     official_pct: float | None = None,
-) -> float:
+) -> tuple[dict[str, float], float]:
+    """Return (band_by_date, default_band_pct).
+
+    band_by_date maps date string → estimated daily-band for that date.
+    The band is inferred from a rolling window of max observed |move|:
+    TSE hard-limits prices at the band, so the rolling max is a reliable
+    indicator of the prevailing limit (e.g., 4% from 2025 vs ~10% earlier).
+    """
     if official_pct is not None and official_pct > 0:
         logger.info("Using official band pct: %.2f%%", official_pct * 100)
-        return float(official_pct)
+        return {}, float(official_pct)
+
     df = underlying_eod[
         (underlying_eod["yesterday"] > 0)
         & (underlying_eod["min"] > 0)
         & (underlying_eod["max"] > 0)
     ].copy()
-    up_move = (df["max"] / df["yesterday"] - 1).abs()
-    dn_move = (df["min"] / df["yesterday"] - 1).abs()
-    all_moves = pd.concat([up_move, dn_move]).dropna()
-    all_moves = all_moves[all_moves > 0]
-    band = float(all_moves.quantile(quantile))
-    logger.info("Empirical band (q=%.2f): %.4f (%.2f%%)", quantile, band, band * 100)
-    return band
+    df = df.sort_values("date").reset_index(drop=True)
+    df["abs_move"] = (
+        pd.concat(
+            [(df["max"] / df["yesterday"] - 1).abs(), (df["min"] / df["yesterday"] - 1).abs()],
+            axis=1,
+        ).max(axis=1)
+    )
+    # Rolling quantile over `window` trading days — this tracks the prevailing band limit
+    df["band_pct"] = df["abs_move"].rolling(window, min_periods=max(5, window // 4)).quantile(quantile)
+    # Forward-fill any leading NaNs with the first valid value
+    df["band_pct"] = df["band_pct"].bfill()
+
+    default_band = float(df["band_pct"].iloc[-1]) if len(df) > 0 else 0.04
+    band_by_date: dict[str, float] = dict(zip(df["date"].astype(str), df["band_pct"].round(6)))
+
+    by_year = df.groupby(df["date"].astype(str).str[:4])["band_pct"].agg(["min", "max", "mean"])
+    logger.info("Per-year band range:\n%s", by_year.to_string())
+    logger.info("Current (most-recent) band: %.2f%%", default_band * 100)
+    return band_by_date, default_band
 
 
 def classify_queue_snapshots(
     opt_by_date: dict,
-    band_pct: float,
+    band_pct_by_date: dict[str, float],
+    default_band_pct: float,
     at_limit_tol_ticks: int,
     min_persist: int,
     post_guard_min: float,
@@ -63,12 +85,14 @@ def classify_queue_snapshots(
     regime_by_date: {date_str -> DataFrame[ts, regime, tau_min, episode_id]}
     opt_by_date: {date_str: dict of numpy arrays (ts, bid_px_1, ask_px_1, ...)}
     Arrays must be sorted by ts.
+    band_pct_by_date maps each date string to the prevailing band on that date.
     """
     episodes: list[dict] = []
     regime_by_date: dict[str, pd.DataFrame] = {}
     ep_id = 0
 
     for dt, day in sorted(opt_by_date.items()):
+        band_pct = band_pct_by_date.get(str(dt), default_band_pct)
         ts_arr = day["ts"]
         n = len(ts_arr)
         bp1 = day.get("bid_px_1", np.zeros(n))
@@ -192,12 +216,13 @@ def run(cfg: dict) -> tuple[dict, pd.DataFrame]:
     band_cfg = cfg["band"]
     queue_cfg = cfg["queue"]
 
-    # Band pct from underlying EOD
+    # Band pct from underlying EOD — computed per date using rolling window
     under_eod_path = root / cfg["paths"]["underlying_history"]
     under_eod = pd.read_csv(under_eod_path, encoding="utf-8")
     under_eod["date"] = under_eod["date"].astype(str)
-    band_pct = detect_band_pct(
+    band_pct_by_date, band_pct = compute_band_per_date(
         under_eod,
+        window=band_cfg.get("rolling_window_days", 60),
         quantile=band_cfg["empirical_quantile"],
         official_pct=band_cfg.get("official_pct"),
     )
@@ -230,7 +255,7 @@ def run(cfg: dict) -> tuple[dict, pd.DataFrame]:
         len(synced_instruments),
     )
     logger.info(
-        "Queue params: band=%.2f%%, tol=%d ticks, min_persist=%d snaps, post_guard=%.0f min",
+        "Queue params: current_band=%.2f%%, tol=%d ticks, min_persist=%d snaps, post_guard=%.0f min",
         band_pct * 100,
         band_cfg["at_limit_tol_ticks"],
         queue_cfg["min_persist_snapshots"],
@@ -296,7 +321,8 @@ def run(cfg: dict) -> tuple[dict, pd.DataFrame]:
         # ── Queue detection ──────────────────────────────────────────────────
         regime_by_date, episodes = classify_queue_snapshots(
             opt_by_date_final,
-            band_pct=band_pct,
+            band_pct_by_date=band_pct_by_date,
+            default_band_pct=band_pct,
             at_limit_tol_ticks=band_cfg["at_limit_tol_ticks"],
             min_persist=queue_cfg["min_persist_snapshots"],
             post_guard_min=queue_cfg["post_queue_guard_min"],

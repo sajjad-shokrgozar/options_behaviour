@@ -1,6 +1,6 @@
 # Data Quality Report
 
-*Generated: 2026-06-27 13:39*
+*Generated: 2026-06-27 21:05*
 
 ## Ingestion
 - Instruments ingested: 146
@@ -31,15 +31,15 @@
 - Staleness window: 120s
 
 ## Liquidity
-- Zero-volume contract-day rate: 56.8%
+- Zero-volume rate (within active lifetime): 55.8% (raw: 56.8%)
 - Call-put pair availability: 50.4%
 
 ## Band & Queue
-- Empirical band: 9.95%
-- Episodes detected: 1827
-- Regime counts: {'free': 7395224, 'buy_queue': 6740, 'sell_queue': 1955}
+- Empirical band: 4.00%
+- Episodes detected: 1877
+- Regime counts: {'free': 7395032, 'buy_queue': 6880, 'sell_queue': 2007}
 
 ## Pricing & IV
 - Daily-eligible rows priced: 18368
-- IV flag counts: {'ok': 16074, 'no_arb': 1841, 'invalid_input': 356, 'numerical': 97}
+- IV flag counts: {'ok': 14590, 'no_arb': 3321, 'invalid_input': 356, 'numerical': 101}
 - Parity pairs: 6972

@@ -180,7 +180,7 @@ def run_tier_a(cfg: dict, eod: pd.DataFrame) -> list[dict]:
     # ── 3. BS pricing error by bucket ─────────────────────────────────────────
     err_data = eod.dropna(subset=["bs_error"]).copy()
     if "moneyness" not in err_data.columns:
-        err_data["moneyness"] = err_data["close"] / err_data["K"]
+        err_data["moneyness"] = err_data["K"] / err_data["close"]
     err_data["moneyness_bucket"] = err_data["moneyness"].apply(
         lambda x: moneyness_label(x, mon_edges)
     )
@@ -248,7 +248,7 @@ def run_tier_a(cfg: dict, eod: pd.DataFrame) -> list[dict]:
             pairs["moneyness"] = pairs.get("moneyness_call", np.nan)
             if "moneyness" not in pairs.columns or pairs["moneyness"].isna().all():
                 if "S_call" in pairs.columns and "K_call" in pairs.columns:
-                    pairs["moneyness"] = pairs["S_call"] / pairs["K_call"]
+                    pairs["moneyness"] = pairs["K_call"] / pairs["S_call"]
             pairs["moneyness_bucket"] = pairs["moneyness"].apply(
                 lambda x: moneyness_label(x, mon_edges) if pd.notna(x) else "unknown"
             )
@@ -351,7 +351,7 @@ def run(cfg: dict) -> None:
         eod["date_str"] = pd.to_datetime(eod["date"], format="%Y%m%d", errors="coerce").dt.strftime("%Y%m%d")
 
     if "moneyness" not in eod.columns and "S" in eod.columns and "K" in eod.columns:
-        eod["moneyness"] = eod["S"] / eod["K"]
+        eod["moneyness"] = eod["K"] / eod["S"]
 
     # Tier-A analysis
     findings = run_tier_a(cfg, eod)

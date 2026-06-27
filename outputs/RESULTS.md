@@ -1,18 +1,18 @@
 # Results — Black-Scholes Validity & Option Behavior Under Queue Dynamics (Ahrom ETF)
 
-*Generated: 2026-06-27 13:39*
+*Generated: 2026-06-27 21:05*
 
 ---
 
 ## Data Overview
 
 - Contracts: 450 (225 call, 225 put)
-- Zero-volume contract-day rate (EOD): 56.8%
+- Zero-volume rate (within active lifetime): 55.8% (raw incl. pre/post-listing: 56.8%)
 - Call-put pair availability (EOD traded): 50.4%
 - Intraday eligible rate: 49.7%
-- Empirical band: 9.95%
-- Queue episodes detected: 1827
-- Regime counts: {'free': 7395224, 'buy_queue': 6740, 'sell_queue': 1955}
+- Empirical band: 4.00%
+- Queue episodes detected: 1877
+- Regime counts: {'free': 7395032, 'buy_queue': 6880, 'sell_queue': 2007}
 - Daily-eligible observations priced: 18368
 - Parity pairs (EOD): 6972
 
@@ -24,17 +24,17 @@
 
 ### axA_skew_persistent — IV skew in near-term calls (free periods)
 
-**Claim:** Near-term call IV slope vs moneyness = 0.8500 (p=0.000)
+**Claim:** Near-term call IV slope vs moneyness = -0.1788 (p=0.159)
 
 **Scope:** moneyness=near-atm; maturity_days=<=30; regime=free
 
 **Metrics:**
-  - skew_slope: 0.8499551552735386
-  - n_obs: 2021
-  - p_value: 2.117862228715561e-27
+  - skew_slope: -0.17883308426039807
+  - n_obs: 1744
+  - p_value: 0.1585544640298091
 
 **Stat test:** HAC OLS
-  - t/stat = 10.8445, p = 0.0000
+  - t/stat = -1.4099, p = 0.1586
 
 **Figures:** `axA_iv_smile`
 
@@ -48,17 +48,17 @@
 
 ### axA_bs_error — BS pricing error magnitude and direction
 
-**Claim:** Median BS pricing error (EWMA vol) = 486.05; mean = 844.26 (p=0.000, n=18012)
+**Claim:** Median BS pricing error (EWMA vol) = 220.52; mean = 452.38 (p=0.000, n=18012)
 
 **Scope:** regime=daily_eligible; maturity_days=all
 
 **Metrics:**
-  - median_bs_error: 486.04805025376044
-  - mean_bs_error: 844.2631340982061
+  - median_bs_error: 220.51880168987918
+  - mean_bs_error: 452.3787317350719
   - n_obs: 18012
 
 **Stat test:** HAC t-test
-  - t/stat = 28.9567, p = 0.0000
+  - t/stat = 18.6671, p = 0.0000
 
 **Figures:** `axA_pricing_error_by_bucket`
 
@@ -72,16 +72,16 @@
 
 ### axA_parity — Put-call parity deviation
 
-**Claim:** Median parity basis = 578.00; mean = 810.97 (p=0.000)
+**Claim:** Median parity basis = -332.42; mean = -514.95 (p=0.000)
 
 **Scope:** regime=daily_eligible; moneyness=all
 
 **Metrics:**
-  - median_parity_basis: 578.0
+  - median_parity_basis: -332.41937329276607
   - n_pairs: 6972
 
 **Stat test:** HAC t-test
-  - t/stat = 16.2996, p = 0.0000
+  - t/stat = -10.3111, p = 0.0000
 
 **Figures:** `axA_parity_by_bucket`
 
@@ -99,14 +99,14 @@
 
 ### axB_tau_coverage — τ-bucket coverage in queue regime
 
-**Claim:** Total queue option snapshots: 8681; buy_queue: 6732; sell_queue: 1949
+**Claim:** Total queue option snapshots: 8872; buy_queue: 6871; sell_queue: 2001
 
 **Scope:** regime=queue
 
 **Metrics:**
-  - n_queue_snaps: 8681
-  - n_buy_queue: 6732
-  - n_sell_queue: 1949
+  - n_queue_snaps: 8872
+  - n_buy_queue: 6871
+  - n_sell_queue: 2001
 
 **Tables:** `axB_tau_buckets`
 
@@ -118,14 +118,14 @@
 
 ### axB_nextday_open — Next-day open predictability from shadow gap
 
-**Claim:** Shadow gap slope=6.01e-06, p=0.0000, N=6627
+**Claim:** Shadow gap slope=7.30e-06, p=0.0000, N=6669
 
 **Scope:** regime=queue
 
 **Metrics:**
-  - shadow_gap_slope: 6.014583051051906e-06
-  - n_obs: 6627
-  - p_value: 5.711776735854973e-233
+  - shadow_gap_slope: 7.30275116680018e-06
+  - n_obs: 6669
+  - p_value: 0.0
 
 **Stat test:** OLS
 
@@ -133,7 +133,7 @@
 
 **Tables:** `axB_nextday_pred`
 
-**Limitations:** N=6627; EOD only
+**Limitations:** N=6669; EOD only
 
 **Confidence:** medium
 
@@ -141,12 +141,12 @@
 
 ### axB_shadow_availability — Shadow price availability during queue episodes
 
-**Claim:** Shadow price computable for 6708 EOD pairs during queue days.
+**Claim:** Shadow price computable for 6750 EOD pairs during queue days.
 
 **Scope:** regime=queue
 
 **Metrics:**
-  - n_shadow_obs: 6708
+  - n_shadow_obs: 6750
 
 **Figures:** `axB_shadow_vs_tau`
 

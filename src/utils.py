@@ -116,10 +116,11 @@ def to_seconds(heven: int | str) -> float | None:
     return t.hour * 3600 + t.minute * 60 + t.second
 
 
-def moneyness_label(s_over_k: float, edges: list[float]) -> str:
-    labels = ["deep_otm", "otm", "atm", "itm", "deep_itm"]
+def moneyness_label(k_over_s: float, edges: list[float]) -> str:
+    """Moneyness bucket for K/S convention: deep_otm when K >> S (call far OTM)."""
+    labels = ["deep_itm", "itm", "atm", "otm", "deep_otm"]
     for i, edge in enumerate(edges[1:]):
-        if s_over_k < edge:
+        if k_over_s < edge:
             return labels[min(i, len(labels) - 1)]
     return labels[-1]
 

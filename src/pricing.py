@@ -147,20 +147,79 @@ def shadow_price(C: float, P: float, K: float, T: float, r: float) -> float:
 # Rates & volatility
 # ──────────────────────────────────────────────────────────────────────────────
 
+_PERSIAN_MONTHS = {
+    'فروردین': 1, 'اردیبهشت': 2, 'خرداد': 3, 'تیر': 4,
+    'مرداد': 5, 'شهریور': 6, 'مهر': 7, 'آبان': 8,
+    'آذر': 9, 'دی': 10, 'بهمن': 11, 'اسفند': 12,
+}
+
+# Gregorian (month, day) where each Jalali month begins (approximate, non-leap)
+_JALALI_GREG_START = {
+    1: (3, 21), 2: (4, 21), 3: (5, 22), 4: (6, 22),
+    5: (7, 23), 6: (8, 23), 7: (9, 23), 8: (10, 23),
+    9: (11, 22), 10: (12, 22), 11: (1, 21), 12: (2, 20),
+}
+
+
+def _jalali_to_greg_start(jyear: int, jmonth: int) -> pd.Timestamp:
+    gm, gd = _JALALI_GREG_START[jmonth]
+    gy = jyear + 621 if jmonth <= 10 else jyear + 622
+    return pd.Timestamp(gy, gm, gd)
+
+
 def load_rates(cfg: dict) -> pd.Series | None:
-    """Load external r(date) series. Returns None if unavailable."""
+    """Load risk_free_rate from Main_DataBase.xlsx economic_variables sheet.
+
+    Falls back to the CSV path in config if the Excel file is missing.
+    Returns a DatetimeIndex Series of annualised continuously-compounded rates,
+    or None if unavailable (caller will use r=0).
+    """
     root = project_root()
+    xl_path = root / "Main_DataBase.xlsx"
+    if xl_path.exists():
+        try:
+            df = pd.read_excel(xl_path, sheet_name="economic_variables")
+            df = df[df["risk_free_rate"].notna()].copy()
+            df["jmonth_num"] = df["month"].astype(str).str.strip().map(_PERSIAN_MONTHS)
+            df = df.dropna(subset=["jmonth_num", "year"])
+            df["year"] = df["year"].astype(int)
+            df["jmonth_num"] = df["jmonth_num"].astype(int)
+
+            intervals: list[tuple[pd.Timestamp, float]] = []
+            for _, row in df.iterrows():
+                try:
+                    greg_start = _jalali_to_greg_start(int(row["year"]), int(row["jmonth_num"]))
+                    intervals.append((greg_start, float(row["risk_free_rate"])))
+                except Exception:
+                    continue
+
+            if not intervals:
+                logger.warning("No parseable rows in economic_variables — r=0")
+                return None
+
+            intervals.sort(key=lambda x: x[0])
+            idx = pd.DatetimeIndex([x[0] for x in intervals])
+            rate_series = pd.Series([x[1] for x in intervals], index=idx)
+            logger.info(
+                "Loaded %d monthly risk-free rates from Excel (latest %.2f%% on %s)",
+                len(rate_series), rate_series.iloc[-1] * 100, idx[-1].date(),
+            )
+            return rate_series
+        except Exception as e:
+            logger.warning("Failed loading Excel rates: %s — trying CSV fallback", e)
+
+    # CSV fallback
     r_path = root / cfg["pricing"]["r_external_series"]
     if not r_path.exists():
-        logger.info("External rate file not found: %s — will use r=0", r_path)
+        logger.info("No rate source found — will use r=0")
         return None
     try:
         r_df = pd.read_csv(r_path, parse_dates=["date"])
         r_df = r_df.set_index("date")["yield"]
-        logger.info("Loaded %d rate observations", len(r_df))
+        logger.info("Loaded %d rate observations from CSV", len(r_df))
         return r_df
     except Exception as e:
-        logger.warning("Failed loading rate file: %s", e)
+        logger.warning("Failed loading CSV rate file: %s", e)
         return None
 
 
@@ -231,9 +290,15 @@ def run(cfg: dict) -> pd.DataFrame:
     # Attach σ_ewma per date
     eligible["sigma_ewma"] = eligible["valuation_date"].dt.strftime("%Y%m%d").map(ewma)
 
-    # Attach risk-free rate per date
+    # Attach risk-free rate per date (forward-fill monthly observations to daily)
     if rates is not None:
-        eligible["r"] = eligible["valuation_date"].map(rates).fillna(0.0)
+        all_dates = pd.date_range(
+            start=rates.index.min(),
+            end=eligible["valuation_date"].max(),
+            freq="D",
+        )
+        rates_daily = rates.reindex(all_dates).ffill()
+        eligible["r"] = eligible["valuation_date"].map(rates_daily).fillna(0.0)
     else:
         eligible["r"] = 0.0  # default when no external rate
 
