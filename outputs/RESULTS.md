@@ -1,6 +1,6 @@
 # Results — Black-Scholes Validity & Option Behavior Under Queue Dynamics (Ahrom ETF)
 
-*Generated: 2026-06-27 21:05*
+*Generated: 2026-06-28 09:03*
 
 ---
 
@@ -24,17 +24,17 @@
 
 ### axA_skew_persistent — IV skew in near-term calls (free periods)
 
-**Claim:** Near-term call IV slope vs moneyness = -0.1788 (p=0.159)
+**Claim:** Near-term call IV slope vs moneyness = 0.8225 (p=0.000)
 
 **Scope:** moneyness=near-atm; maturity_days=<=30; regime=free
 
 **Metrics:**
-  - skew_slope: -0.17883308426039807
+  - skew_slope: 0.8224949593701212
   - n_obs: 1744
-  - p_value: 0.1585544640298091
+  - p_value: 1.9420495006652817e-15
 
 **Stat test:** HAC OLS
-  - t/stat = -1.4099, p = 0.1586
+  - t/stat = 7.9450, p = 0.0000
 
 **Figures:** `axA_iv_smile`
 

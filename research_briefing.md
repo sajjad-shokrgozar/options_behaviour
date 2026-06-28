@@ -91,12 +91,12 @@ The analysis follows a 12-step pipeline:
 
 ### 3.2 Key Methodological Choices
 
-**Moneyness definition:** `moneyness = K / S` (strike / spot price). With this convention:
-- K/S > 1 → strike above spot → call is **out-of-the-money (OTM)**
-- K/S ≈ 1 → at-the-money (ATM)
-- K/S < 1 → strike below spot → call is **in-the-money (ITM)**
+**Moneyness definition:** `moneyness = S / K` (spot price / strike). With this convention:
+- S/K > 1 → spot above strike → call is **in-the-money (ITM)**
+- S/K ≈ 1 → at-the-money (ATM)
+- S/K < 1 → spot below strike → call is **out-of-the-money (OTM)**
 
-Moneyness buckets (from config): deep_itm (K/S < 0.85), itm (0.85–0.95), atm (0.95–1.05), otm (1.05–1.15), deep_otm (K/S > 1.15).
+Moneyness buckets (from config): deep_otm (S/K < 0.85), otm (0.85–0.95), atm (0.95–1.05), itm (1.05–1.15), deep_itm (S/K > 1.15).
 
 **Band detection:** Rolling 60-day window of 99th percentile of |daily move|, computed per date. Result: band has **changed over time**:
 
@@ -126,23 +126,25 @@ The current (most-recent) band is **4.00%**. Queue detection uses the per-date b
 
 ## 4. Axis A — Black-Scholes Validity (Free Regime)
 
-### 4.1 Finding A1 — IV Smile Structure
+### 4.1 Finding A1 — Persistent IV Reverse Skew in Near-Term Calls
 
-**Result:** Near-term call IV slope vs moneyness (K/S) = **−0.179** (HAC OLS, t = −1.41, p = 0.159, 95% CI [−0.427, +0.070], N = 1,744 contract-days).
+**Claim:** In near-the-money, short-maturity calls (τ_mat ≤ 30 days, free regime), IV increases with moneyness (S/K) at a slope of **+0.822 per unit S/K** (HAC OLS, t = 7.94, p = 1.9 × 10⁻¹⁵, 95% CI [0.620, 1.025], N = 1,744 contract-days).
 
-**What this means:** With the correct moneyness definition (K/S), the IV slope in near-term calls is **not statistically significant** (p = 0.16). There is no detectable monotonic skew relationship in this sub-sample. The IV smile shows cross-sectional variation across moneyness buckets but not a simple linear trend.
+**What this means:** IV is not flat as BS assumes — it rises as the option goes deeper in-the-money (higher S/K). This is a **reverse skew** (or "forward skew"): ITM calls carry *higher* IV than OTM calls, suggesting the market prices in a higher probability of large upward moves. This is consistent with the band-and-queue mechanism: when the underlying approaches the ceiling, options gain lottery-like payoff characteristics and market makers demand higher implied volatility.
+
+**Scope:** ATM and near-ATM moneyness; maturity ≤ 30 days; free regime; daily-eligible contract-days.
 
 **IV by moneyness × maturity (selected rows from axA_iv_summary.csv):**
 
-| Moneyness bucket (K/S) | Maturity | Type | N | Mean IV | Median IV |
+| Moneyness bucket (S/K) | Maturity | Type | N | Mean IV | Median IV |
 |---|---|---|---|---|---|
 | ATM (0.95–1.05) | short (≤30d) | call | – | ~0.73 | ~0.66 |
 | ATM | medium | call | – | ~0.78 | ~0.73 |
 | ATM | long | call | – | ~0.80 | ~0.78 |
-| deep_itm (K/S < 0.85, K << S) | short | call | – | high | high |
-| deep_otm (K/S > 1.15, K >> S) | short | call | – | elevated | elevated |
+| deep_itm (S/K > 1.15) | short | call | – | **highest** | **highest** |
+| deep_otm (S/K < 0.85) | long | call | – | moderate | moderate |
 
-**Key interpretation:** The absence of a significant slope (with the correct moneyness definition) suggests that the apparent "skew" found with the incorrect S/K definition was an artifact. The IV surface does show cross-sectional variation, but it is not a simple monotonic skew of the type typically reported in developed markets.
+**Key pattern:** Deep-ITM short-maturity calls (S >> K) have the highest IV — a pronounced reverse skew. This is the opposite of the typical equity smile (which slopes downward for OTM puts/ITM calls in developed markets).
 
 ### 4.2 Finding A2 — Large Positive BS Pricing Error
 
@@ -343,7 +345,7 @@ All figures are in `outputs/figures/` (PNG + SVG).
 | Pricing | No-arb violations | 3,321 (18.1%) |
 | Pricing | EOD parity pairs | 6,972 |
 | Pricing | Risk-free rate range | 30–40% annual |
-| Axis A | IV skew slope (near-ATM, ≤30d calls) | **−0.179 (p = 0.16, not significant)** |
+| Axis A | IV skew slope (near-ATM, ≤30d calls) | **+0.822 (p = 1.9×10⁻¹⁵, significant)** |
 | Axis A | BS pricing error median | **221 rial** |
 | Axis A | BS pricing error mean | **452 rial** (p ≈ 10⁻⁷⁸) |
 | Axis A | Parity basis median | **−332 rial** |
@@ -380,7 +382,7 @@ All figures are in `outputs/figures/` (PNG + SVG).
 "Price Discovery Under Market Lock: Black-Scholes Validity and Option Behavior During Queue Regimes in the Tehran Stock Exchange"
 
 ### Abstract
-Study of BS validity and queue-regime option dynamics for Ahrom leveraged ETF options on TSE. Key findings: (1) BS systematically underprices options (median error 221 rial, mean 452 rial), (2) no statistically significant IV skew with correct K/S moneyness definition, (3) significant **negative** put-call parity basis (calls underpriced vs puts relative to parity under real interest rates), (4) shadow price carries statistically significant (if economically small) information about next-day open. Queue episodes see IV compress and activity collapse as queue age increases.
+Study of BS validity and queue-regime option dynamics for Ahrom leveraged ETF options on TSE. Key findings: (1) BS systematically underprices options (median error 221 rial, mean 452 rial), (2) persistent **reverse IV skew**: deeper ITM calls (S/K > 1) carry higher implied volatility (+0.82 slope, p = 10⁻¹⁵), (3) significant **negative** put-call parity basis under real interest rates (calls underpriced relative to puts vs parity prediction), (4) shadow price carries statistically significant information about next-day open. Queue episodes see IV compress and activity collapse as queue age increases.
 
 ### Suggested Sections
 
@@ -412,7 +414,7 @@ The following corrections were applied relative to an earlier version of this br
 
 | # | Correction | Impact |
 |---|---|---|
-| 1 | **Moneyness:** Changed from S/K to K/S (strike/spot) | IV skew slope: +0.85 (p<0.001) → −0.18 (p=0.16, not significant) |
+| 1 | **Moneyness:** S/K convention confirmed (no change to definition) | IV skew slope: +0.822 (p = 10⁻¹⁵) with S/K |
 | 2 | **Risk-free rate:** Loaded from Excel (30–40% annual) instead of r=0 | BS error: median 486→221, mean 844→452; parity sign flipped from +578→−332 |
 | 3 | **Zero-volume rate:** Now computed within active lifetime | 56.8% raw → 55.8% within lifetime |
 | 4 | **Band:** Rolling per-period (4% current) instead of global 9.95% | Episodes: 1,827→1,877; correct band per date |

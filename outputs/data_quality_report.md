@@ -1,6 +1,6 @@
 # Data Quality Report
 
-*Generated: 2026-06-27 21:05*
+*Generated: 2026-06-28 09:03*
 
 ## Ingestion
 - Instruments ingested: 146

@@ -3,24 +3,24 @@
     "id": "axA_skew_persistent",
     "axis": "A",
     "title": "IV skew in near-term calls (free periods)",
-    "claim": "Near-term call IV slope vs moneyness = -0.1788 (p=0.159)",
+    "claim": "Near-term call IV slope vs moneyness = 0.8225 (p=0.000)",
     "scope": {
       "moneyness": "near-atm",
       "maturity_days": "<=30",
       "regime": "free"
     },
     "metrics": {
-      "skew_slope": -0.17883308426039807,
+      "skew_slope": 0.8224949593701212,
       "n_obs": 1744,
-      "p_value": 0.1585544640298091
+      "p_value": 1.9420495006652817e-15
     },
     "stat_test": {
       "name": "HAC OLS",
-      "statistic": -1.409949943270203,
-      "p_value": 0.1585544640298091,
+      "statistic": 7.944990958492844,
+      "p_value": 1.9420495006652817e-15,
       "ci": [
-        -0.42742801209282955,
-        0.06976184357203344
+        0.6195922114308109,
+        1.0253977073094314
       ]
     },
     "figure_refs": [

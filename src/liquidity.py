@@ -26,11 +26,11 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-def moneyness_bucket(k_over_s: float, edges: list) -> str:
-    """Moneyness bucket for K/S convention: deep_otm when K >> S (call far OTM)."""
-    labels = ["deep_itm", "itm", "atm", "otm", "deep_otm"]
+def moneyness_bucket(s_over_k: float, edges: list) -> str:
+    """Moneyness bucket for S/K convention: deep_itm when S >> K (call deep in the money)."""
+    labels = ["deep_otm", "otm", "atm", "itm", "deep_itm"]
     for i, edge in enumerate(edges[1:]):
-        if k_over_s < edge:
+        if s_over_k < edge:
             return labels[min(i, len(labels) - 1)]
     return labels[-1]
 
@@ -93,7 +93,7 @@ def run(cfg: dict) -> tuple[pd.DataFrame, pd.DataFrame]:
     under_eod["date"] = under_eod["date"].astype(str)
     under_close_map = under_eod.set_index("date")["close"].to_dict()
     eod["S"] = eod["date"].map(under_close_map)
-    eod["moneyness"] = np.where(eod["S"] > 0, eod["K"] / eod["S"], np.nan)
+    eod["moneyness"] = np.where(eod["K"] > 0, eod["S"] / eod["K"], np.nan)
     eod["moneyness_bucket"] = eod["moneyness"].apply(
         lambda x: moneyness_bucket(x, mon_edges) if pd.notna(x) else "unknown"
     )

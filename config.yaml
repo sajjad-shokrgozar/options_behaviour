@@ -29,7 +29,7 @@ queue:
   post_queue_guard_min: 5         # minutes excluded after queue releases
 
 buckets:
-  # moneyness = K/S (strike / spot). deep_otm when K >> S (call far out-of-the-money).
+  # moneyness = S/K (spot / strike). deep_itm when S >> K (call deep in-the-money).
   moneyness_edges: [0.0, 0.85, 0.95, 1.05, 1.15, 100.0]
   maturity_days_edges: [0, 30, 60, 100000]
 
